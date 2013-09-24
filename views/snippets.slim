@@ -1,0 +1,8 @@
+
+table
+  - for snippet in @snippets
+    tr
+      td
+        a href="snippet/#{snippet.id}" = snippet.title
+      td
+        = User.get(snippet.user_id).username

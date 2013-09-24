@@ -1,0 +1,106 @@
+
+$purple: #823A8A;
+$red: #903;
+$green: #3EB416;
+$black: #444;
+$white: #fff;
+$main-font: Helvetica, Arial, sans-serif;
+
+body {
+  font-family: $main-font;
+}
+
+h1 {
+  color: $purple;
+  font: 32px/1 $main-font;
+}
+
+header h1 {
+  font-size: 60px;
+  line-height: 80px;
+  background: transparent url(/images/logo.png) 0 0 no-repeat;
+  text-align: center;
+}
+
+@mixin tabs ($background: blue, $color: yellow) {
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: $background;
+    overflow: hidden;
+  }
+  li {
+    float: left;
+  }
+  a {
+    text-decoration: none;
+    display: block;
+    padding: 8px;
+    background: $background;
+    color: $color;
+    &:hover {
+      background: darken($background, 20%);
+    }
+  }
+}
+
+nav {
+  @include tabs ($background: $black, $color: $white);
+  font-weight: bold;
+}
+
+nav a.current {
+  background: lighten($black, 10%)
+}
+
+p {
+  font: 13px/1.4 $main-font;
+}
+
+label {
+  display: block;
+}
+
+.flash {
+  width: 600px;
+  padding: 5px;
+  font-weight: bold;
+  margin: 20px;
+}
+
+.error {
+  background: lighten($red, 60%);
+  color: $red;
+  border: 1px solid $red; 
+}
+
+.success {
+  background: lighten($green, 60%);
+  color: $green;
+  border: 1px solid $green;
+}
+
+div#post_comments {
+  padding-top: 40px;
+}
+
+
+div#main {
+  margin-top: 30px;
+  margin-left: 30px;
+}
+
+div.comment {
+  width: 600px;
+  margin-top: 10px;
+  padding-left: 10px;
+  border: 1px solid $purple;
+}
+
+
+
+
+
+
+

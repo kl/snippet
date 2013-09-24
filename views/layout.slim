@@ -1,0 +1,25 @@
+doctype html
+html lang="en"
+  head
+    title== @title
+    meta charset="utf-8"
+    == css :styles
+  body
+  header
+    h1 Snippet
+    nav
+      ul
+        li
+          a href=="/" title="Home" class=check_current Home
+        li
+          a href=="/snippet" class=check_current("/snippet") title="Browse Snippets" Browse Snippets
+        li
+          a href=="/snippet/new" class=check_current("/snippet/new") title="Create a new Snippet" Create a new Snippet
+        li
+          a href=="/login" class=check_current("/login") title="Login" Login
+        li
+          a href=="/register" class=check_current("/register") title="Register" Register
+  div id="main"
+    == styled_flash
+    == yield
+

@@ -1,0 +1,13 @@
+
+h3 = @snippet.title
+pre = @snippet.text
+
+div#comments
+  - @snippet.comments.each do |comment|
+    == slim :comment, locals: { comment: comment }
+
+div#post_comments
+  form action="/snippet/#{@snippet.id}/comment/new" method="POST"
+    label for="comment" Comment:
+    textarea#comment cols="100" rows="15" name="comment"
+    input type="submit" value="Add Comment"
