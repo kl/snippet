@@ -1,6 +1,6 @@
 
 h3 = @snippet.title
-pre = @snippet.text
+div#snippet_text == @text
 
 div#comments
   - @snippet.comments.each do |comment|

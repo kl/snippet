@@ -85,6 +85,12 @@ div#post_comments {
   padding-top: 40px;
 }
 
+div#snippet_text {
+  white-space: pre;
+  font-family: monospace;
+  font-size: 13px;
+}
+
 
 div#main {
   margin-top: 30px;
@@ -99,7 +105,11 @@ div.comment {
 }
 
 
+// TODO: move this to own file
 
+span.keyword {
+  color: blue;
+}
 
 
 

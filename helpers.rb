@@ -36,4 +36,10 @@ module AppHelper
 
     "<ul>\n" + messages.join("\n") + additional.join("\n") + "</ul>"
   end
+
+  def get_formatter(type)
+    Module.const_get(type.capitalize + "Formatter").new
+  rescue NameError => e
+    raise ArgumentError, "There is no formatter for type '#{type}'"
+  end
 end

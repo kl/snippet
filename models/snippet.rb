@@ -6,6 +6,7 @@ class Snippet
   property :id, Serial, key: true
   property :title, String, length: 256
   property :text, Text, required: true
+  property :type, String, required: true
 
   belongs_to :user
   has n, :comments

@@ -4,13 +4,9 @@ require 'bundler'
 Bundler.require
 require 'sinatra/flash'
 require 'sinatra/reloader' if development?
-
 require './recaptcha.rb'
 require './helpers.rb'
-require './models/user.rb'
-require './models/snippet.rb'
-require './models/comment.rb'
-require './config/warden_config.rb'
+Dir[File.dirname(__FILE__) + '/{models,config,formatters}/*.rb'].each { |file| require file }
 
 class SnippetApp < Sinatra::Base
 
@@ -89,19 +85,25 @@ class SnippetApp < Sinatra::Base
   end
 
   post "/snippet/new" do
-    snippet = Snippet.new(user_id: current_user.id, title: params["name"], text: params["snippet"])
+    snippet = Snippet.new user_id: current_user.id,
+                          title: params["name"],
+                          text: params["snippet"],
+                          type: params["type"]
 
     if snippet.save
       flash[:success] = "Snippet created successfully"
       redirect "/snippet/#{snippet.id}"
     else
-      flash[:error] = snippet.errors.as_list
+      flash[:error] = format_errors(snippet.errors)
       redirect "/snippet/new"
     end
   end
 
   get "/snippet/:id" do
     @snippet = Snippet.get(params[:id].to_i)
+    formatter = get_formatter(@snippet.type)
+    @text = formatter.format(escape_html(@snippet.text))
+    
     slim :view_snippet
   end
 
@@ -112,7 +114,7 @@ class SnippetApp < Sinatra::Base
     if comment.save
       redirect "/snippet/#{snippet_id}"
     else
-      flash[:error] = comment.errors.as_list
+      flash[:error] = format_errors(comment.errors)
       redirect "/snippet/#{snippet_id}"
     end
   end
