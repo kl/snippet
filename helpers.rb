@@ -30,15 +30,10 @@ module AppHelper
     env["warden"].user
   end
 
-end
+  def format_errors(user_errors, *additional_messages)
+    messages   = user_errors.full_messages.map { |message| "<li>#{message}</li>" }
+    additional = additional_messages.map       { |message| "<li>#{message}</li>" }
 
-# Monkey patches
-
-class DataMapper::Validations::ValidationErrors
-
-  def as_list
-    messages = full_messages.map { |message| "<li>#{message}</li>" }
-    "<ul>\n" + messages.join("\n") + "</ul>"
+    "<ul>\n" + messages.join("\n") + additional.join("\n") + "</ul>"
   end
 end
-

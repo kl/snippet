@@ -16,4 +16,6 @@ form action="/register" method="POST"
   label for="Phone number" Phone:
   input#confirm_password type="text" name="phone"
 
+  == slim(:recaptcha)
+
   input type="submit" value="Register"

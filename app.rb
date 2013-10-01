@@ -5,6 +5,7 @@ Bundler.require
 require 'sinatra/flash'
 require 'sinatra/reloader' if development?
 
+require './recaptcha.rb'
 require './helpers.rb'
 require './models/user.rb'
 require './models/snippet.rb'
@@ -42,16 +43,22 @@ class SnippetApp < Sinatra::Base
   end
 
   get "/register" do
+    @captcha_public_key = ReCaptcha.public_key
     slim :register
   end
 
   post "/register" do
     user = new_user(params)
-    if user.save
+    captcha = ReCaptcha.verify params["recaptcha_challenge_field"],
+                               params["recaptcha_response_field"],
+                               request.ip
+    
+    if user.valid? && captcha.verified?
+      user.save
       flash[:success] = "Registration successful"
       redirect "/"
     else
-      flash[:error] = user.errors.as_list
+      flash[:error] = format_errors(user.errors, captcha.message)
       redirect "/register"
     end
   end
@@ -111,33 +118,3 @@ class SnippetApp < Sinatra::Base
   end
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=begin
-
-  get "/protected" do
-    env["warden"].authenticate!
-
-    slim :protected
-  end
-
-=end
-
