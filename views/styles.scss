@@ -111,6 +111,18 @@ span.keyword {
   color: blue;
 }
 
+span.symbol {
+  color: green;
+}
+
+span.instance_variable {
+  color: red;
+}
+
+span.string {
+  color: $purple;
+}
+
 
 
 

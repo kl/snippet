@@ -40,6 +40,6 @@ module AppHelper
   def get_formatter(type)
     Module.const_get(type.capitalize + "Formatter").new
   rescue NameError => e
-    raise ArgumentError, "There is no formatter for type '#{type}'"
+    raise ArgumentError, "There is no formatter for type '#{type}' OR the formatter is broken"
   end
 end
