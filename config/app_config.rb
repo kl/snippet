@@ -1,10 +1,9 @@
-require 'rack'
-require './app'
+#encoding: utf-8
 
-builder = Rack::Builder.new do
+configure do
+  helpers AppHelper
 
   use Rack::Session::Cookie, secret: "nothingissecretontheinternet"
-  #use Rack::Flash, accessorize: [:error, :success]
 
   use Warden::Manager do |config|
 
@@ -14,10 +13,10 @@ builder = Rack::Builder.new do
 
     config.scope_defaults :default, strategies: [:password], action: "/unauthenticated"
 
-    config.failure_app = SnippetApp
+    config.failure_app = Sinatra::Application
   end
 
-  run SnippetApp
+  DataMapper.setup(:default, "sqlite://#{settings.root}/database.db")
+  DataMapper.finalize
+  DataMapper.auto_upgrade!
 end
-
-Rack::Handler::WEBrick.run builder, :Port => 4567
