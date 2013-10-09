@@ -4,7 +4,7 @@ class Snippet
   include DataMapper::Resource
 
   property :id, Serial, key: true
-  property :title, String, length: 256
+  property :title, String, length: 256, required: true
   property :text, Text, required: true
   property :type, String, required: true
 
