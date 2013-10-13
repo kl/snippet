@@ -91,11 +91,21 @@ div#post_comments {
   padding-top: 40px;
 }
 
+div#snippet_header h3 {
+  display: inline;
+}
+
+div#snippet_header a {
+  font-size: 12px;
+  margin-left: 20px;
+}
+
 div#snippet_text {
   white-space: pre;
   font-family: monospace;
   font-size: 13px;
   margin-bottom: 50px;
+  margin-top: 25px;
 }
 
 table.snippets {
@@ -132,6 +142,7 @@ div.comment {
   width: 600px;
   margin-top: 10px;
   padding-left: 10px;
+  padding-top: 5px;
   border: 1px solid $purple;
 }
 

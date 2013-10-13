@@ -2,6 +2,14 @@
 
 module AppHelper
 
+  UNAUTHORIZED = {
+    "/snippet/new" => { message: "You must log in before posting a snippet.",
+                        redirect: "/login" },
+
+    %r{/snippet/\d+/comment/new} => { message: "You must log in before posting a comment.",
+                                      redirect: "/login" }
+  }
+
   def css(*stylesheets)
     css_link_tags = stylesheets.map do |stylesheet|
       "<link href=\"/#{stylesheet}.css\" media=\"screen, projection\" rel=\"stylesheet\" />"
@@ -41,5 +49,37 @@ module AppHelper
     Module.const_get(type.capitalize + "Formatter").new
   rescue NameError => e
     raise ArgumentError, "There is no formatter for type '#{type}' OR the formatter is broken"
+  end
+
+  def plain_text_url(snippet)
+    "/snippet/#{snippet.id}/plain"
+  end
+
+  def unauthorized_redirect_for(path)
+    unauthorized = unauthorized_for(path)
+    unauthorized && unauthorized[:redirect]
+  end
+
+  def unauthorized_message_for(path)
+    unauthorized = unauthorized_for(path)
+    unauthorized && unauthorized[:message]
+  end
+
+  def unauthorized_for(path)
+    # Get string literal match
+    unauthorized = UNAUTHORIZED[path]
+
+    # If not string literal match, check if path matches a regex key
+    unless unauthorized
+      key = UNAUTHORIZED.keys.find { |key| key.is_a?(Regexp) && key =~ path }
+      unauthorized = UNAUTHORIZED[key]
+    end
+
+    # Return unauthorized or nil
+    unauthorized
+  end
+
+  def logged_in?
+    not current_user.nil?
   end
 end

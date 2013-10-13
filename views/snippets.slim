@@ -2,10 +2,17 @@
 table.snippets
   tr
     th Snippet
-    th Created by
+    th Type
+    th Author
+    th Created at
   - for snippet in @snippets
     tr
       td
         a href="snippet/#{snippet.id}" = snippet.title
       td
+      	= snippet.type.capitalize
+      td
         = User.get(snippet.user_id).username
+      td
+      	/ Format date-time to local format
+      	= snippet.created_at && snippet.created_at.strftime("%c")

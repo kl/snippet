@@ -11,15 +11,15 @@ module ReCaptcha
   end
 
   def verify(challenge, response, client_ip)
-    response = RestClient.post "http://www.google.com/recaptcha/api/verify",
-                { 
-                  privatekey: private_key,
-                  remoteip:   client_ip,
-                  challenge:  challenge,
-                  response:   response
-                }
+    result = RestClient.post "http://www.google.com/recaptcha/api/verify",
+              { 
+                privatekey: private_key,
+                remoteip:   client_ip,
+                challenge:  challenge,
+                response:   response
+              }
 
-    parse_response(response)
+    parse_result(response)
   end
 
   # --- Private module methods ---
@@ -31,8 +31,8 @@ module ReCaptcha
 
   # The response is in the following format: [true or false]\n[message]
   #
-  def parse_response(response)
-    result  = response.split("\n")
+  def parse_result(result)
+    result  = result.split("\n")
     success = result.first == "true"
     message = result.last
 
@@ -49,5 +49,5 @@ module ReCaptcha
     end
   end
 
-  private_class_method :private_key, :parse_response, :format_message
+  private_class_method :private_key, :parse_result, :format_message
 end

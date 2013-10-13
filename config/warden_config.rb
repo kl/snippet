@@ -7,18 +7,17 @@ Warden::Strategies.add(:password) do
 
   def authenticate!
     user = User.first(username: params["username"])
-    
-    if user.nil?
-      fail!("The username you entered does not exist.")
-    elsif user.authenticate(params["password"])
-      success!(user)
+
+    if user.nil? || !user.authenticate(params["password"])
+      fail! "The username or password is incorrect."
     else
-      fail!("Could not log in")
+      success! user
     end
   end
 end
 
-Warden::Manager.before_failure do |env,opts|
-  env['REQUEST_METHOD'] = 'POST'
+# To ensure that fail route (POST) in the app
+Warden::Manager.before_failure do |env, opts|
+  env["REQUEST_METHOD"] = "POST"
 end
 

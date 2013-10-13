@@ -1,15 +1,16 @@
 
 div#snippet_header
   h3 = @snippet.title
-  h5 = "test"
+  a href=plain_text_url(@snippet) Plain text 
 div#snippet_text == @text
 
 div#comments
   - @snippet.comments.each do |comment|
     == slim :comment, locals: { comment: comment }
 
-div#post_comments
-  form action="/snippet/#{@snippet.id}/comment/new" method="POST"
-    label for="comment" Comment:
-    textarea#comment cols="100" rows="15" name="comment"
-    input type="submit" value="Add Comment"
+- if logged_in?
+  div#post_comments
+    form action="/snippet/#{@snippet.id}/comment/new" method="POST"
+      label for="comment" Comment:
+      textarea#comment cols="100" rows="15" name="comment"
+      input type="submit" value="Add Comment"

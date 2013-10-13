@@ -10,13 +10,15 @@ html lang="en"
     nav
       ul
         li
-          a href=="/" title="Home" class=check_current Home
-        li
-          a href=="/snippet" class=check_current("/snippet") title="Browse Snippets" Browse Snippets
+          a href=="/snippets" class=check_current("/snippets") title="Browse Snippets" Browse Snippets
         li
           a href=="/snippet/new" class=check_current("/snippet/new") title="Create a new Snippet" Create a new Snippet
-        li
-          a href=="/login" class=check_current("/login") title="Login" Login
+        - if !logged_in?
+          li
+            a href=="/login" class=check_current("/login") title="Login" Login
+        - if logged_in?
+          li
+            a href=="/logout" title="Logout" class=check_current Logout
         li
           a href=="/register" class=check_current("/register") title="Register" Register
   div id="main"

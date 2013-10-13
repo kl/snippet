@@ -4,6 +4,9 @@ require 'bundler'
 Bundler.require
 require 'sinatra/flash'
 require 'sinatra/reloader' if development?
+require 'webrick'
+require 'webrick/https'
+require 'openssl'
 require './recaptcha.rb'
 require './helpers.rb'
 Dir[File.dirname(__FILE__) + '/{models,config,formatters}/*.rb'].each { |file| require file }
@@ -14,7 +17,7 @@ get "/styles.css" do
 end
 
 get "/" do
-  slim :index
+  redirect "/snippets"
 end
 
 get "/login" do
@@ -23,9 +26,14 @@ end
 
 post "/login" do
   env["warden"].authenticate!
-
   flash[:success] = "Successfully logged in"
+  redirect "/"
+end
 
+get "/logout" do
+  puts env["warden"].raw_session.inspect
+  env["warden"].logout
+  flash[:success] = "Successfully logged out"
   redirect "/"
 end
 
@@ -43,30 +51,22 @@ post "/register" do
   if user.valid? && captcha.verified?
     user.save
     flash[:success] = "Registration successful"
-    redirect "/"
+    redirect "/login"
   else
     flash[:error] = format_errors(user.errors, captcha.message)
     redirect "/register"
   end
 end
 
-get "/logout" do
-  puts env["warden"].raw_session.inspect
-  env["warden"].logout
-  flash.success = "Successfully logged out"
-  redirect "/"
-end
-
 post "/unauthenticated" do
-  session[:return_to] = env["warden.options"][:attempted_path]
-  puts env["warden.options"][:attempted_path]
-  #flash.error = env["warden"].message || "You must log in"
-  redirect "/login"
+  attempted = env["warden.options"][:attempted_path]
+
+  flash[:error] = unauthorized_message_for(attempted) || "You must log in first"
+  redirect unauthorized_redirect_for(attempted)       || "/login"
 end
 
-get "/snippet" do
+get "/snippets" do
   @snippets = Snippet.all(order: [:id.desc])
-  #binding.pry
   slim :snippets
 end
 
@@ -76,6 +76,8 @@ get "/snippet/new" do
 end
 
 post "/snippet/new" do
+  env["warden"].authenticate!
+
   snippet = Snippet.new user_id: current_user.id,
                         title: params["name"],
                         text: params["snippet"],
@@ -98,9 +100,16 @@ get "/snippet/:id" do
   slim :view_snippet
 end
 
+get "/snippet/:id/plain" do
+  content_type "text/plain"
+  Snippet.get(params[:id].to_i).text
+end
+
 post "/snippet/:id/comment/new" do
+  env["warden"].authenticate!
+
   snippet_id = params[:id].to_i
-  comment = Comment.new(user_id: current_user.id, snippet_id: snippet_id, text: params[:comment])
+  comment = Comment.new user_id: current_user.id, snippet_id: snippet_id, text: params[:comment]
 
   if comment.save
     redirect "/snippet/#{snippet_id}"
@@ -109,3 +118,18 @@ post "/snippet/:id/comment/new" do
     redirect "/snippet/#{snippet_id}"
   end
 end
+
+#
+# Start the WEBrick server in HTTPS mode
+#
+
+Rack::Handler::WEBrick.run Sinatra::Application, {
+  Port:               8443,
+  Logger:             WEBrick::Log::new($stderr, WEBrick::Log::DEBUG),
+  DocumentRoot:       settings.root,
+  SSLEnable:          true,
+  SSLVerifyClient:    OpenSSL::SSL::VERIFY_NONE,
+  SSLCertificate:     OpenSSL::X509::Certificate.new(File.open(settings.cert_path).read),
+  SSLPrivateKey:      OpenSSL::PKey::RSA.new(File.open(settings.cert_key_path).read),
+  SSLCertName:        [["CN", WEBrick::Utils::getservername ]]
+}
