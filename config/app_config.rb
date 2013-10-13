@@ -4,7 +4,7 @@ configure do
   helpers AppHelper
 
   use Rack::Session::Cookie, secret: "nothingissecretontheinternet"
-
+  
   set :cert_root, File.join(settings.root, "ssl")
   set :cert_key_path, File.join(settings.cert_root, "snippet.cert.key")
   set :cert_path, File.join(settings.cert_root, "snippet.cert.crt")

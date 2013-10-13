@@ -82,4 +82,18 @@ module AppHelper
   def logged_in?
     not current_user.nil?
   end
+
+  # Because a hash cannot be saved in the flash (marshalled)
+  # save each entry separately.
+  def save_registration_params(params)
+    session[:fail_username] = params[:username]
+    session[:fail_email]    = params[:email]
+    session[:fail_phone]    = params[:phone]
+  end
+
+  def delete_registration_params
+    session[:fail_username] = nil
+    session[:fail_email]    = nil
+    session[:fail_phone]    = nil
+  end
 end

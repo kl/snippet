@@ -11,7 +11,6 @@ require './recaptcha.rb'
 require './helpers.rb'
 Dir[File.dirname(__FILE__) + '/{models,config,formatters}/*.rb'].each { |file| require file }
 
-
 get "/styles.css" do
   scss :styles
 end
@@ -39,21 +38,30 @@ end
 
 get "/register" do
   @captcha_public_key = ReCaptcha.public_key
+
+  # These attributes are set if this registration is a retry
+  @username = session[:fail_username] || ""
+  @email    = session[:fail_email]    || ""
+  @phone    = session[:fail_phone]    || ""
+
+  delete_registration_params
   slim :register
 end
 
 post "/register" do
   user = new_user(params)
+
   captcha = ReCaptcha.verify params["recaptcha_challenge_field"],
                              params["recaptcha_response_field"],
                              request.ip
-  
+
   if user.valid? && captcha.verified?
     user.save
     flash[:success] = "Registration successful"
     redirect "/login"
   else
     flash[:error] = format_errors(user.errors, captcha.message)
+    save_registration_params(params) 
     redirect "/register"
   end
 end

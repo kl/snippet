@@ -19,7 +19,7 @@ module ReCaptcha
                 response:   response
               }
 
-    parse_result(response)
+    parse_result(result)
   end
 
   # --- Private module methods ---
