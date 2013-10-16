@@ -11,6 +11,10 @@ require './recaptcha.rb'
 require './helpers.rb'
 Dir[File.dirname(__FILE__) + '/{models,config,formatters}/*.rb'].each { |file| require file }
 
+not_found do
+  "404 Page not found."
+end
+
 get "/styles.css" do
   scss :styles
 end
@@ -24,14 +28,21 @@ get "/login" do
 end
 
 post "/login" do
-  env["warden"].authenticate!
+
+  if login_locked?
+    flash[:error] = login_locked_message
+    redirect "/login"
+  end
+
+  warden.authenticate!
+
+  reset_login_state
   flash[:success] = "Successfully logged in"
   redirect "/"
 end
 
 get "/logout" do
-  puts env["warden"].raw_session.inspect
-  env["warden"].logout
+  warden.logout
   flash[:success] = "Successfully logged out"
   redirect "/"
 end
@@ -69,7 +80,7 @@ end
 post "/unauthenticated" do
   attempted = env["warden.options"][:attempted_path]
 
-  flash[:error] = unauthorized_message_for(attempted) || "You must log in first"
+  flash[:error] = unauthorized_message_for(attempted) || "You must log in first."
   redirect unauthorized_redirect_for(attempted)       || "/login"
 end
 
@@ -79,12 +90,12 @@ get "/snippets" do
 end
 
 get "/snippet/new" do
-  env["warden"].authenticate!
+  warden.authenticate!
   slim :new_snippet
 end
 
 post "/snippet/new" do
-  env["warden"].authenticate!
+  warden.authenticate!
 
   snippet = Snippet.new user_id: current_user.id,
                         title: params["name"],
@@ -101,7 +112,7 @@ post "/snippet/new" do
 end
 
 get "/snippet/:id" do
-  @snippet = Snippet.get(params[:id].to_i)
+  @snippet = Snippet.get(params[:id]) || halt(404)
   formatter = get_formatter(@snippet.type)
   @text = formatter.format(escape_html(@snippet.text))
   
@@ -109,16 +120,20 @@ get "/snippet/:id" do
 end
 
 get "/snippet/:id/plain" do
+  snippet = Snippet.get(params[:id]) || halt(404)
   content_type "text/plain"
-  Snippet.get(params[:id].to_i).text
+  snippet.text
 end
 
 post "/snippet/:id/comment/new" do
-  env["warden"].authenticate!
+  warden.authenticate!
 
-  snippet_id = params[:id].to_i
-  comment = Comment.new user_id: current_user.id, snippet_id: snippet_id, text: params[:comment]
+  snippet_id = params[:id] 
+  halt(404) unless Snippet.get(snippet_id)
 
+  comment = Comment.new user_id:    current_user.id,
+                        snippet_id: snippet_id,
+                        text:       params[:comment]
   if comment.save
     redirect "/snippet/#{snippet_id}"
   else
@@ -126,6 +141,7 @@ post "/snippet/:id/comment/new" do
     redirect "/snippet/#{snippet_id}"
   end
 end
+
 
 #
 # Start the WEBrick server in HTTPS mode

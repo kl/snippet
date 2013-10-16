@@ -6,10 +6,11 @@ Warden::Strategies.add(:password) do
   end
 
   def authenticate!
+    success! env["warden"].user if env["warden"].user
     user = User.first(username: params["username"])
 
     if user.nil? || !user.authenticate(params["password"])
-      fail! "The username or password is incorrect."
+      fail!
     else
       success! user
     end
@@ -20,4 +21,3 @@ end
 Warden::Manager.before_failure do |env, opts|
   env["REQUEST_METHOD"] = "POST"
 end
-

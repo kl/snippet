@@ -3,11 +3,9 @@
 module AppHelper
 
   UNAUTHORIZED = {
-    "/snippet/new" => { message: "You must log in before posting a snippet.",
-                        redirect: "/login" },
-
-    %r{/snippet/\d+/comment/new} => { message: "You must log in before posting a comment.",
-                                      redirect: "/login" }
+    "/snippet/new"               => { message: "You must log in before posting a snippet.", redirect: "/login" },
+    %r{/snippet/\d+/comment/new} => { message: "You must log in before posting a comment.", redirect: "/login" },
+    "/login"                     => { message: "The username or password is incorrect.",    redirect: "/login" }
   }
 
   def css(*stylesheets)
@@ -34,8 +32,12 @@ module AppHelper
     new_user
   end
 
+  def warden
+    env["warden"]
+  end
+
   def current_user
-    env["warden"].user
+    warden.user
   end
 
   def format_errors(user_errors, *additional_messages)
@@ -95,5 +97,74 @@ module AppHelper
     session[:fail_username] = nil
     session[:fail_email]    = nil
     session[:fail_phone]    = nil
+  end
+end
+
+module LoginHelper
+
+  MAX_LOGIN_ATTEMPTS = 2
+  LOGIN_LOCKOUT_MINUTES = 1
+
+  def login_attempts
+    @login_attempts ||= LoginAttempts.get(env["REMOTE_ADDR"]) ||
+                        LoginAttempts.create(ip_address: env["REMOTE_ADDR"])
+  end
+
+  def login_locked?
+    if lock_set?
+      not lock_expired?
+    else
+      check_login_lockout
+      false
+    end
+  end
+
+  def lock_expired?
+    if Time.now.to_i >= login_lock_expire_time
+      reset_login_state 
+      true
+    else
+      false
+    end
+  end
+
+  def check_login_lockout
+    increment_login_attempts
+    assign_lock if no_more_attempts?
+  end
+
+  def lock_set?
+    not login_attempts.lock.nil?
+  end
+
+  def assign_lock
+    login_attempts.update(lock: Time.now.to_i)
+  end
+
+  def no_more_attempts?
+    login_attempts.attempts >= MAX_LOGIN_ATTEMPTS
+  end
+
+  def increment_login_attempts
+    login_attempts.update(attempts: login_attempts.attempts + 1)
+  end
+
+  def reset_login_state
+    login_attempts.destroy
+    @login_attempts = nil
+  end
+
+  def login_locked_message
+    "You have failed to login too many times in a row. " + 
+    "You must wait #{login_lock_time_remaining} before attempting to log in again."
+  end
+
+  def login_lock_time_remaining
+    seconds = login_lock_expire_time - Time.now.to_i
+    "#{seconds / 60} minutes, #{seconds % 60} seconds"
+  end
+
+  def login_lock_expire_time
+    login_attempts.lock + (60 * LOGIN_LOCKOUT_MINUTES)
   end
 end
