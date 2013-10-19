@@ -1,12 +1,15 @@
 
 div#snippet_header
   h3 = @snippet.title
-  a href=plain_text_url(@snippet) Plain text 
+  a href=plain_text_url(@snippet) Plain text
+/ @text is already escaped and should be inserted with ==. See get "/snippet/:id" in app.rb
 div#snippet_text == @text
 
 div#comments
   - @snippet.comments.each do |comment|
-    == slim :comment, locals: { comment: comment }
+    div.comment
+	  em = User.get(comment.user_id).username + " commented"
+	  p = comment.text
 
 - if logged_in?
   div#post_comments

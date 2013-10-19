@@ -40,6 +40,10 @@ module AppHelper
     warden.user
   end
 
+  def renew_session_id
+    env["rack.session.options"][:renew] = true
+  end
+
   def format_errors(user_errors, *additional_messages)
     messages   = user_errors.full_messages.map { |message| "<li>#{message}</li>" }
     additional = additional_messages.map       { |message| "<li>#{message}</li>" }
@@ -55,6 +59,14 @@ module AppHelper
 
   def plain_text_url(snippet)
     "/snippet/#{snippet.id}/plain"
+  end
+
+  def snippet_types
+    {
+      "plain" => "Plain text",
+      "ruby"  => "Ruby",
+      "java"  => "Java"
+    }
   end
 
   def unauthorized_redirect_for(path)
@@ -102,8 +114,8 @@ end
 
 module LoginHelper
 
-  MAX_LOGIN_ATTEMPTS = 2
-  LOGIN_LOCKOUT_MINUTES = 1
+  MAX_LOGIN_ATTEMPTS = 5
+  LOGIN_LOCKOUT_MINUTES = 20
 
   def login_attempts
     @login_attempts ||= LoginAttempts.get(env["REMOTE_ADDR"]) ||

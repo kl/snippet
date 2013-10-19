@@ -6,9 +6,8 @@ form action="/snippet/new" method="POST"
 
   label for="type" Type:
   select#type name="type"
-  	option value="plain" Plain text
-  	option value="ruby" Ruby
-  	option value="java" Java
+    - snippet_types.each do |type, description| 
+  	  option value=type =description
   	
   label for="snippet"
   textarea#snippet cols="120" rows="40" name="snippet"

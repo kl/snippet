@@ -12,7 +12,7 @@ require './helpers.rb'
 Dir[File.dirname(__FILE__) + '/{models,config,formatters}/*.rb'].each { |file| require file }
 
 not_found do
-  "404 Page not found."
+  "404 Not Found"
 end
 
 get "/styles.css" do
@@ -38,11 +38,13 @@ post "/login" do
 
   reset_login_state
   flash[:success] = "Successfully logged in"
+  renew_session_id
   redirect "/"
 end
 
 get "/logout" do
   warden.logout
+  session.clear
   flash[:success] = "Successfully logged out"
   redirect "/"
 end
@@ -50,7 +52,7 @@ end
 get "/register" do
   @captcha_public_key = ReCaptcha.public_key
 
-  # These attributes are set if this registration is a retry
+  # These attributes are set if this registration is a retry.
   @username = session[:fail_username] || ""
   @email    = session[:fail_email]    || ""
   @phone    = session[:fail_phone]    || ""
@@ -97,6 +99,9 @@ end
 post "/snippet/new" do
   warden.authenticate!
 
+  # Validates that the type has not been tampered with.
+  halt(400) unless snippet_types.has_key?(params["type"])
+
   snippet = Snippet.new user_id: current_user.id,
                         title: params["name"],
                         text: params["snippet"],
@@ -115,7 +120,7 @@ get "/snippet/:id" do
   @snippet = Snippet.get(params[:id]) || halt(404)
   formatter = get_formatter(@snippet.type)
   @text = formatter.format(escape_html(@snippet.text))
-  
+
   slim :view_snippet
 end
 
@@ -144,7 +149,7 @@ end
 
 
 #
-# Start the WEBrick server in HTTPS mode
+# Start the WEBrick server in HTTPS mode.
 #
 
 Rack::Handler::WEBrick.run Sinatra::Application, {
